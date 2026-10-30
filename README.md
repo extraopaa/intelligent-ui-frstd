@@ -24,19 +24,34 @@ Sans configuration, l’application démarre en **mode démo** : 10 réponses sc
 
 L’écran **Connexion France Student** propose deux parcours :
 
-1. **Compte France Student** — le bouton « Continuer avec France Student » ouvre le
-   portail officiel [ia.francestudent.org](https://ia.francestudent.org/login).
-   L’application ne demande jamais le mot de passe France Student.
+1. **Compte France Student** — deux façons de se connecter :
+   - **Email et mot de passe (non officiel)** : le serveur de l’application rejoue le
+     parcours de connexion de France Student avec vos identifiants. Une case de
+     consentement est obligatoire avant l’envoi.
+   - **Portail officiel (recommandé)** : le lien « Ouvrir le portail officiel France
+     Student » ouvre [ia.francestudent.org](https://ia.francestudent.org/login). Le mot
+     de passe ne transite alors jamais par cette application.
 2. **Accès développeur** — si vous disposez d’une clé API, ouvrez « Utiliser une clé »,
    collez-la, choisissez un modèle, puis cliquez sur **Tester et connecter**.
 
-> **Pourquoi la connexion automatique n’est pas encore active ?**
+> **Avertissements sur la connexion email / mot de passe**
 > France Student IA utilise un OAuth NextAuth/WHMCS dont le client est confidentiel et
 > dont le `redirect_uri` est réservé à `ia.francestudent.org`. Une application tierce ne
-> peut donc ni récupérer la session de l’utilisateur, ni échanger le code OAuth sans un
-> client autorisé par France Student. L’interface est prête à activer ce flux dès qu’un
-> accès OAuth officiel sera accordé. En attendant, le mode démo et la clé API restent
-> disponibles.
+> peut donc pas faire un OAuth officiel : la connexion email / mot de passe est un
+> contournement technique qui reproduit ce parcours côté serveur.
+>
+> - Elle n’est pas officielle et peut cesser de fonctionner si France Student modifie
+>   son parcours de connexion.
+> - Elle peut contrevenir aux conditions d’utilisation du service : à utiliser à vos
+>   risques.
+> - Votre mot de passe est transmis au serveur de l’application, puis à France Student.
+>   Il n’est ni stocké ni journalisé.
+> - Seuls les jetons de session sont conservés, dans des cookies HttpOnly valables
+>   environ 30 jours. La déconnexion les supprime.
+> - Les tentatives sont limitées (8 par 10 minutes et par IP, compteur en mémoire).
+> - Les comptes protégés par captcha ou double authentification peuvent être refusés :
+>   utilisez alors le portail officiel, une clé API ou le mode démo.
+> - N’hébergez cette fonction que sur un serveur de confiance et en HTTPS.
 
 La clé est vérifiée par un échange minimal avec l’API, puis conservée dans le
 `sessionStorage` de l’onglet. Elle disparaît à la fermeture de l’onglet et n’est jamais
@@ -141,7 +156,9 @@ Points importants :
 - Les formules des sliders sont évaluées par un parseur maison (`+ - * / ( )`, variable `value`), sans `eval`.
 - **Aucune persistance locale** : les conversations vivent dans la mémoire de l’onglet. Un rechargement les efface.
 - En mode connecté, France Student peut conserver la conversation dans le compte associé à la clé, selon ses propres conditions. Cette application n’ajoute aucune base de données.
-- Pas d’authentification complète ni de multi-utilisateur : c’est un MVP.
+- **Connexion email / mot de passe (non officielle)** : le mot de passe transite par la route `/api/auth/francestudent/login`, puis est envoyé à France Student. Il n’est ni stocké ni journalisé. Seuls les jetons de session sont conservés, dans des cookies HttpOnly (`fs_session_token`, `fs_device_id`, `secure` en production, environ 30 jours) supprimés à la déconnexion. Les réponses d’authentification sont envoyées avec `Cache-Control: no-store`, et les tentatives sont limitées à 8 par 10 minutes et par IP (compteur en mémoire, propre à chaque instance du serveur).
+- Cette méthode peut contrevenir aux conditions d’utilisation de France Student et cesser de fonctionner sans préavis. Le portail officiel et la clé API restent les voies recommandées.
+- Pas de comptes ni de base de données propres à l’application : l’identité reste celle du compte France Student, et c’est un MVP.
 - Les réponses d’un modèle peuvent contenir des erreurs. Les données chiffrées des démos sont indicatives.
 
 ## Scripts
@@ -173,7 +190,7 @@ npm run lint   # ESLint
 | `404` | Modèle introuvable : choisissez-en un autre dans les réglages. |
 | `429` | Limite de débit atteinte : patientez avant de réessayer. |
 | Le mode reste « Démo » | Connectez une clé dans les réglages, ou définissez `FRANCESTUDENT_API_KEY` puis redémarrez. |
-| La connexion automatique n’apparaît pas | France Student réserve son OAuth à `ia.francestudent.org`. Utilisez le portail officiel, le mode démo ou une clé API. |
+| La connexion email / mot de passe échoue | Vérifiez vos identifiants. Les comptes avec captcha ou double authentification peuvent être refusés, tout comme après 8 tentatives en 10 minutes. Cette méthode n’est pas officielle et peut cesser de fonctionner : utilisez alors le portail officiel, une clé API ou le mode démo. |
 | Réponse brute au lieu de blocs | Le modèle n’a pas respecté le JSON. Essayez un modèle plus capable. |
 | La vérification échoue | L’échange de test peut consommer quelques tokens ; vérifiez aussi le réseau et le modèle. |
 
