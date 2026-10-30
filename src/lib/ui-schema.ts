@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ICON_NAMES } from "@/lib/ui-icons";
 
 /**
  * Catalogue de blocs que le modèle est autorisé à produire.
@@ -78,7 +79,7 @@ const TableBlock = z.object({
 
 const ChartBlock = z.object({
   type: z.literal("chart"),
-  chartType: z.enum(["bar", "line"]),
+  chartType: z.enum(["bar", "line", "area", "pie", "donut"]),
   title: optionalText(120),
   data: z
     .array(
@@ -194,7 +195,145 @@ const SourcesBlock = z.object({
     .max(8),
 });
 
+const iconName = z.enum(ICON_NAMES);
+
+const TabsBlock = z.object({
+  type: z.literal("tabs"),
+  title: optionalText(120),
+  tabs: z
+    .array(
+      z.object({
+        label: shortText(40),
+        icon: iconName.optional(),
+        content: z.string().max(3000).describe("Texte Markdown du panneau. Pas de HTML."),
+        points: z.array(shortText(220)).max(8).optional(),
+      })
+    )
+    .min(2)
+    .max(8),
+});
+
+const CardsBlock = z.object({
+  type: z.literal("cards"),
+  title: optionalText(120),
+  layout: z.enum(["grid", "carousel"]).optional(),
+  items: z
+    .array(
+      z.object({
+        title: shortText(80),
+        text: optionalText(400),
+        icon: iconName.optional(),
+        badge: optionalText(30),
+        prompt: optionalText(1200).describe(
+          "Message autonome envoyé à l'assistant si l'utilisateur clique sur la carte. Optionnel."
+        ),
+      })
+    )
+    .min(1)
+    .max(12),
+});
+
+const StepsBlock = z.object({
+  type: z.literal("steps"),
+  title: optionalText(120),
+  items: z
+    .array(
+      z.object({
+        title: shortText(120),
+        description: optionalText(300),
+        detail: optionalText(1500).describe("Détail affiché quand l'utilisateur déplie l'étape."),
+      })
+    )
+    .min(1)
+    .max(12),
+});
+
+const FlashcardsBlock = z.object({
+  type: z.literal("flashcards"),
+  title: optionalText(120),
+  cards: z
+    .array(
+      z.object({
+        front: shortText(300),
+        back: shortText(600),
+      })
+    )
+    .min(1)
+    .max(16),
+});
+
+const CalculatorBlock = z.object({
+  type: z.literal("calculator"),
+  title: optionalText(120),
+  description: optionalText(300),
+  inputs: z
+    .array(
+      z.object({
+        name: z
+          .string()
+          .min(1)
+          .max(30)
+          .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, "Identifiant invalide")
+          .describe("Nom de variable utilisable dans les formules (ex: capital)."),
+        label: shortText(80),
+        min: z.number().finite(),
+        max: z.number().finite(),
+        step: z.number().finite().positive().optional(),
+        defaultValue: z.number().finite(),
+        unit: optionalText(24),
+      })
+    )
+    .min(1)
+    .max(6),
+  outputs: z
+    .array(
+      z.object({
+        label: shortText(80),
+        formula: z
+          .string()
+          .min(1)
+          .max(300)
+          .describe(
+            "Expression utilisant les noms des entrées, + - * / % ^, parenthèses et min max abs sqrt round floor ceil pow."
+          ),
+        unit: optionalText(24),
+        decimals: z.number().int().min(0).max(6).optional(),
+        highlight: z.boolean().optional(),
+      })
+    )
+    .min(1)
+    .max(6),
+  hint: optionalText(240),
+});
+
+const MapBlock = z.object({
+  type: z.literal("map"),
+  title: optionalText(120),
+  markers: z
+    .array(
+      z.object({
+        label: shortText(80),
+        lat: z.number().finite().min(-90).max(90),
+        lng: z.number().finite().min(-180).max(180),
+        category: optionalText(40),
+        icon: optionalText(8).describe("Un seul emoji pour l'épingle ; sinon l'épingle affiche son numéro."),
+        description: optionalText(240),
+      })
+    )
+    .min(1)
+    .max(20),
+  route: z.boolean().optional().describe("Trace l'itinéraire routier entre les marqueurs, dans l'ordre."),
+  height: z.number().int().min(200).max(720).optional(),
+  caption: optionalText(200),
+});
+
 export const BlockSchema = z.discriminatedUnion("type", [
+  MapBlock,
+  TabsBlock,
+  CardsBlock,
+  StepsBlock,
+  FlashcardsBlock,
+  CalculatorBlock,
   MarkdownBlock,
   HeadingBlock,
   CalloutBlock,

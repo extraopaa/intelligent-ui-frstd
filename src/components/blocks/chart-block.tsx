@@ -22,7 +22,165 @@ function shortLabel(label: string) {
   return label.length > 11 ? `${label.slice(0, 10)}…` : label;
 }
 
+const PIE_COLORS = [
+  "#0139b7",
+  "#ff4b8c",
+  "#12b886",
+  "#f59f00",
+  "#7048e8",
+  "#15aabf",
+  "#e8590c",
+  "#868e96",
+];
+
+function arcPath(
+  cx: number,
+  cy: number,
+  outer: number,
+  inner: number,
+  start: number,
+  end: number
+) {
+  const fullTurn = Math.PI * 2;
+  const safeEnd = end - start >= fullTurn - 0.0001 ? start + fullTurn - 0.0001 : end;
+  const large = safeEnd - start > Math.PI ? 1 : 0;
+  const point = (radius: number, angle: number) =>
+    `${cx + radius * Math.cos(angle)},${cy + radius * Math.sin(angle)}`;
+
+  if (inner <= 0) {
+    return `M${cx},${cy} L${point(outer, start)} A${outer},${outer} 0 ${large} 1 ${point(outer, safeEnd)} Z`;
+  }
+
+  return `M${point(outer, start)} A${outer},${outer} 0 ${large} 1 ${point(outer, safeEnd)} L${point(inner, safeEnd)} A${inner},${inner} 0 ${large} 0 ${point(inner, start)} Z`;
+}
+
+function PieChartView({ block }: { block: ChartBlock }) {
+  const [hover, setHover] = useState<number | null>(null);
+
+  const size = 220;
+  const center = size / 2;
+  const outerRadius = 100;
+  const innerRadius = block.chartType === "donut" ? 62 : 0;
+
+  const positives = block.data.map((point) => Math.max(0, point.value));
+  const total = positives.reduce((sum, value) => sum + value, 0);
+
+  const cumulativeBefore = positives.map((_, position) =>
+    positives.slice(0, position).reduce((sum, value) => sum + value, 0)
+  );
+  const slices = block.data.map((point, index) => {
+    const fraction = total > 0 ? positives[index] / total : 0;
+    const start = -Math.PI / 2 + (total > 0 ? cumulativeBefore[index] / total : 0) * Math.PI * 2;
+    const end = start + fraction * Math.PI * 2;
+    return { point, index, fraction, start, end };
+  });
+
+  const active = hover !== null ? slices[hover] : null;
+  const unit = block.unit ? ` ${block.unit}` : "";
+
+  return (
+    <div className="rounded-2xl border border-line bg-ink/[0.02] p-4 sm:p-5">
+      <div className="mb-3 flex min-h-5 flex-wrap items-center justify-between gap-2">
+        {block.title ? (
+          <h4 className="text-sm font-medium text-ink">{block.title}</h4>
+        ) : (
+   <span />
+        )}
+        <span className="text-[11px] tabular-nums text-faint">
+   {active
+     ? `${active.point.label} · ${formatNumber(active.point.value, 1)}${unit}`
+     : block.unit
+       ? `en ${block.unit}`
+       : ""}
+ </span>
+      </div>
+
+      <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          className="h-auto w-44 shrink-0 sm:w-52"
+   role="img"
+          aria-label={`Graphique ${block.chartType === "donut" ? "en anneau" : "circulaire"}${
+     block.title ? ` : ${block.title}` : ""
+   }`}
+ >
+          {slices.map((slice) =>
+     slice.fraction > 0 ? (
+       <path
+         key={`${slice.point.label}-${slice.index}`}
+         d={arcPath(center, center, outerRadius, innerRadius, slice.start, slice.end)}
+  fill={PIE_COLORS[slice.index % PIE_COLORS.length]}
+         stroke="#ffffff"
+         strokeWidth="2"
+         opacity={hover === null || hover === slice.index ? 1 : 0.4}
+         className="cursor-pointer transition-opacity duration-150"
+  onMouseEnter={() => setHover(slice.index)}
+         onMouseLeave={() => setHover(null)}
+       />
+     ) : null
+   )}
+   {innerRadius > 0 ? (
+            <>
+       <text
+         x={center}
+         y={center - 2}
+  textAnchor="middle"
+         fontSize="22"
+         fontWeight="600"
+         fill="#0a1b3d"
+       >
+  {active ? `${formatNumber(active.fraction * 100, 0)} %` : formatCompact(total)}
+       </text>
+       <text x={center} y={center + 16} textAnchor="middle" fontSize="10" fill="#8490a5">
+  {active ? active.point.label : "total"}
+       </text>
+     </>
+   ) : null}
+ </svg>
+
+        <ul className="w-full min-w-0 flex-1 space-y-1.5">
+          {slices.map((slice) => (
+     <li
+       key={`legend-${slice.point.label}-${slice.index}`}
+       onMouseEnter={() => setHover(slice.index)}
+       onMouseLeave={() => setHover(null)}
+       className={`flex items-center gap-2.5 rounded-lg px-2 py-1 text-sm transition-colors ${
+         hover === slice.index ? "bg-ink/[0.05]" : ""
+}`}
+     >
+       <span
+  className="size-2.5 shrink-0 rounded-full"
+  style={{ backgroundColor: PIE_COLORS[slice.index % PIE_COLORS.length] }}
+         aria-hidden="true"
+/>
+       <span className="min-w-0 flex-1 truncate text-ink">{slice.point.label}</span>
+       <span className="tabular-nums text-muted">
+  {formatNumber(slice.point.value, 1)}
+         {unit}
+       </span>
+       <span className="w-12 text-right text-xs tabular-nums text-faint">
+         {formatNumber(slice.fraction * 100, 0)} %
+       </span>
+     </li>
+   ))}
+        </ul>
+      </div>
+
+      {block.caption ? (
+ <p className="mt-3 px-1 text-xs leading-relaxed text-faint">{block.caption}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export function ChartBlockView({ block }: { block: ChartBlock }) {
+  if (block.chartType === "pie" || block.chartType === "donut") {
+    return <PieChartView block={block} />;
+  }
+  return <CartesianChartView block={block} />;
+}
+
+function CartesianChartView({ block }: { block: ChartBlock }) {
   const [hover, setHover] = useState<number | null>(null);
   const rawId = useId();
   const gradientId = `chart-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -154,7 +312,7 @@ export function ChartBlockView({ block }: { block: ChartBlock }) {
             })
           : null}
 
-        {block.chartType === "line" ? (
+        {block.chartType === "line" || block.chartType === "area" ? (
           <>
             {areaPath ? <path d={areaPath} fill={`url(#${gradientId}-area)`} /> : null}
             <path

@@ -16,6 +16,14 @@ import { ChecklistBlockView } from "@/components/blocks/checklist-block";
 import { SliderBlockView } from "@/components/blocks/slider-block";
 import { FormBlockView } from "@/components/blocks/form-block";
 import { ActionsBlockView } from "@/components/blocks/actions-block";
+import { MapBlockView } from "@/components/blocks/map-block";
+import {
+  CalculatorBlockView,
+  CardsBlockView,
+  FlashcardsBlockView,
+  StepsBlockView,
+  TabsBlockView,
+} from "@/components/blocks/rich-blocks";
 
 export function BlockRenderer({
   block,
@@ -51,8 +59,20 @@ export function BlockRenderer({
       return <FormBlockView block={block} onPrompt={onPrompt} disabled={disabled} />;
     case "actions":
       return <ActionsBlockView block={block} onPrompt={onPrompt} disabled={disabled} />;
+    case "tabs":
+      return <TabsBlockView block={block} />;
+    case "cards":
+      return <CardsBlockView block={block} onPrompt={onPrompt} disabled={disabled} />;
+    case "steps":
+      return <StepsBlockView block={block} />;
+    case "flashcards":
+      return <FlashcardsBlockView block={block} />;
+    case "calculator":
+      return <CalculatorBlockView block={block} />;
     case "sources":
       return <SourcesBlockView block={block} />;
+    case "map":
+      return <MapBlockView block={block} />;
     default:
       return null;
   }

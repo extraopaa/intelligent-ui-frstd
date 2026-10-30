@@ -769,6 +769,122 @@ const explain: UIResponse = {
   ],
 };
 
+const revision: UIResponse = {
+  title: "Réviser un partiel",
+  blocks: [
+    {
+      type: "heading",
+      text: "Un plan de révision en trois temps",
+      level: 2,
+    },
+    {
+      type: "markdown",
+      content:
+        "Pour retenir durablement, alternez **lecture active**, **exercices** et **rappel espacé**. Explorez les méthodes ci-dessous, puis calculez le rythme adapté à votre calendrier.",
+    },
+    {
+      type: "tabs",
+      title: "Choisir une méthode",
+      tabs: [
+        {
+          label: "Rappel actif",
+          icon: "brain",
+          content:
+            "Fermez le cours et **écrivez de mémoire** ce que vous savez, puis vérifiez. C'est l'une des techniques les plus efficaces pour mémoriser.",
+          points: ["Idéal pour les définitions et les formules", "10 à 15 minutes par chapitre"],
+        },
+        {
+          label: "Exercices",
+          icon: "target",
+          content:
+            "Refaites les annales **sans le corrigé** puis comparez. Notez les erreurs récurrentes dans une fiche dédiée.",
+          points: ["Idéal pour les matières techniques", "Chronométrez-vous au moins une fois"],
+        },
+        {
+          label: "Rappel espacé",
+          icon: "calendar",
+          content:
+            "Revoyez chaque notion à intervalles croissants : le lendemain, trois jours après, puis une semaine après.",
+          points: ["Idéal pour la mémorisation longue", "5 minutes par session"],
+        },
+      ],
+    },
+    {
+      type: "chart",
+      chartType: "donut",
+      title: "Répartition conseillée du temps",
+      unit: "%",
+      data: [
+        { label: "Rappel actif", value: 40 },
+        { label: "Exercices", value: 35 },
+        { label: "Rappel espacé", value: 15 },
+        { label: "Pauses", value: 10 },
+      ],
+      caption: "Répartition indicative, à ajuster selon la matière.",
+    },
+    {
+      type: "calculator",
+      title: "Votre rythme de révision",
+      description: "Ajustez les curseurs pour voir le volume de travail nécessaire.",
+      inputs: [
+        { name: "jours", label: "Jours avant l'examen", min: 3, max: 60, step: 1, defaultValue: 21, unit: "j" },
+        { name: "heures", label: "Heures par jour", min: 1, max: 10, step: 0.5, defaultValue: 3, unit: "h" },
+        { name: "chapitres", label: "Chapitres à couvrir", min: 1, max: 30, step: 1, defaultValue: 10 },
+      ],
+      outputs: [
+        { label: "Heures totales", formula: "jours * heures", unit: "h", decimals: 0, highlight: true },
+        { label: "Heures par chapitre", formula: "jours * heures / chapitres", unit: "h", decimals: 1 },
+        { label: "Chapitres par semaine", formula: "chapitres / (jours / 7)", decimals: 1 },
+      ],
+      hint: "Prévoyez au moins un jour de marge avant l'épreuve.",
+    },
+    {
+      type: "steps",
+      title: "Une séance type",
+      items: [
+        {
+          title: "Relire la fiche",
+          description: "Cinq minutes pour se remettre le chapitre en tête.",
+        },
+        {
+          title: "Tester sa mémoire",
+          description: "Répondre sans regarder, à l'oral ou par écrit.",
+          detail:
+            "Posez-vous des questions ouvertes (« pourquoi », « comment ») plutôt que de simples définitions : elles révèlent mieux les lacunes.",
+        },
+        {
+          title: "Corriger et noter les erreurs",
+          description: "Chaque erreur devient une carte à revoir.",
+        },
+      ],
+    },
+    {
+      type: "flashcards",
+      title: "Testez-vous",
+      cards: [
+        { front: "Que fait le rappel actif ?", back: "Il force le cerveau à retrouver l'information, ce qui renforce la mémoire." },
+        { front: "Pourquoi espacer les révisions ?", back: "Revoir juste avant d'oublier consolide la mémorisation à long terme." },
+        { front: "Que faire d'une erreur d'exercice ?", back: "La noter dans une fiche dédiée et la retravailler le lendemain." },
+      ],
+    },
+    {
+      type: "actions",
+      actions: [
+        {
+          label: "Créer mon planning",
+          prompt: "Crée un planning de révision sur 3 semaines pour un partiel de 10 chapitres, avec 3 heures par jour.",
+          variant: "primary",
+        },
+        {
+          label: "Fiches de révision",
+          prompt: "Génère des flashcards pour réviser les méthodes de mémorisation efficaces.",
+        },
+      ],
+    },
+  ],
+  followUps: ["Adapte le plan à2 semaines", "Donne des conseils pour la veille de l'examen"],
+};
+
 const fallback: UIResponse = {
   title: "Bienvenue dans Intelligent UI",
   blocks: [
@@ -792,8 +908,8 @@ const fallback: UIResponse = {
     {
       type: "stats",
       items: [
-        { label: "Types de blocs", value: "13", hint: "Du texte au formulaire" },
-        { label: "Scénarios démo", value: "10", hint: "Sans clé API" },
+        { label: "Types de blocs", value: "19", hint: "Du texte à la carte" },
+        { label: "Scénarios démo", value: "12", hint: "Sans clé API" },
         { label: "Clé requise", value: "0", hint: "Pour explorer" },
       ],
     },
@@ -824,6 +940,109 @@ const fallback: UIResponse = {
   ],
 };
 
+const mapTour: UIResponse = {
+  title: "Une journée à Paris sur la carte",
+  blocks: [
+    {
+      type: "heading",
+      text: "Une journée à Paris, de Notre-Dame à la tour Eiffel",
+      level: 2,
+    },
+    {
+      type: "markdown",
+      content:
+        "Un parcours du centre vers l'ouest : **monuments**, **musées** et **points de vue**. La carte trace l'itinéraire à pied dans l'ordre des étapes. Filtrez par catégorie ou ouvrez-la en plein écran.",
+    },
+    {
+      type: "map",
+      title: "Itinéraire de la journée",
+      markers: [
+        {
+          label: "Cathédrale Notre-Dame",
+          lat: 48.853,
+          lng: 2.3499,
+          category: "Monument",
+          icon: "⛪",
+          description: "Départ sur l'île de la Cité. Le parvis est ouvert à tous.",
+        },
+        {
+          label: "Musée du Louvre",
+          lat: 48.8606,
+          lng: 2.3376,
+          category: "Musée",
+          icon: "🎨",
+          description: "Prévoyez 2 h pour les grandes œuvres. Réservez un créneau en ligne.",
+        },
+        {
+          label: "Musée d'Orsay",
+          lat: 48.86,
+          lng: 2.3266,
+          category: "Musée",
+          icon: "🚂",
+          description: "Les impressionnistes dans une ancienne gare, sur l'autre rive de la Seine.",
+        },
+        {
+          label: "Tour Eiffel",
+          lat: 48.8584,
+          lng: 2.2945,
+          category: "Monument",
+          icon: "🗼",
+          description: "Montée en fin d'après-midi, de préférence avec un billet daté.",
+        },
+        {
+          label: "Trocadéro",
+          lat: 48.8616,
+          lng: 2.2893,
+          category: "Point de vue",
+          icon: "📸",
+          description: "Le meilleur recul pour photographier la tour Eiffel au coucher du soleil.",
+        },
+      ],
+      route: true,
+      height: 460,
+      caption: "Itinéraire à pied, à découper selon votre rythme.",
+    },
+    {
+      type: "timeline",
+      title: "Le déroulé",
+      items: [
+        { date: "9 h", title: "Notre-Dame", description: "Parvis et abords, avant l'arrivée des groupes." },
+        { date: "11 h", title: "Louvre", description: "Salles principales, puis pause aux Tuileries." },
+        { date: "15 h", title: "Orsay", description: "Visite ciblée sur les impressionnistes." },
+        { date: "18 h", title: "Tour Eiffel et Trocadéro", description: "Montée, puis photos au coucher du soleil." },
+      ],
+    },
+    {
+      type: "callout",
+      variant: "info",
+      title: "Bon à savoir",
+      content:
+        "Les jours de fermeture des musées varient selon les périodes. Vérifiez les horaires et réservez avant de partir.",
+    },
+    {
+      type: "actions",
+      title: "Adapter la journée",
+      actions: [
+        {
+          label: "Version sans musée",
+          prompt:
+            "Propose une journée à Paris sans musée, avec plus de parcs et de points de vue, sur une carte.",
+          variant: "primary",
+        },
+        {
+          label: "Ajouter un restaurant",
+          prompt: "Ajoute une pause déjeuner sur la carte de la journée à Paris.",
+        },
+      ],
+    },
+  ],
+  followUps: [
+    "Montre-moi Paris de nuit sur une carte",
+    "Quels quartiers de Paris visiter à pied ?",
+    "Propose un itinéraire à vélo à Paris",
+  ],
+};
+
 function normalize(value: string) {
   return value
     .toLowerCase()
@@ -842,6 +1061,10 @@ export function pickDemoResponse(prompt: string): UIResponse {
 
   if (has("voici le brief", "plan de projet", "brief du projet", "livrables")) {
     return projectPlan;
+  }
+
+  if (has("carte", " paris", "sur une map", "pres de moi", "geolocalis")) {
+    return mapTour;
   }
 
   if (isTravel && has("nature", "balade", "parc", "vert")) {
@@ -894,6 +1117,12 @@ export function pickDemoResponse(prompt: string): UIResponse {
     )
   ) {
     return projectBrief;
+  }
+
+  if (
+    has("revision", "reviser", "partiel", "examen", "flashcard", "memoris", "apprendre")
+  ) {
+    return revision;
   }
 
   if (

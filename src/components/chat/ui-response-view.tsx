@@ -28,12 +28,9 @@ export function UIResponseView({
 
       <div className="space-y-4">
         {blocks.map((block, index) => (
-          <BlockRenderer
-            key={`${block.type}-${index}`}
-            block={block}
-            onPrompt={onPrompt}
-            disabled={disabled}
-          />
+          <div key={`${block.type}-${index}`} className="animate-rise">
+            <BlockRenderer block={block} onPrompt={onPrompt} disabled={disabled} />
+          </div>
         ))}
       </div>
 

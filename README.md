@@ -16,7 +16,7 @@ npm run dev
 
 Ouvrez [http://localhost:3000](http://localhost:3000).
 
-Sans configuration, l’application démarre en **mode démo** : 10 réponses scénarisées sont streamées pour tester tous les composants. Aucune clé n’est nécessaire.
+Sans configuration, l’application démarre en **mode démo** : 12 réponses scénarisées sont streamées pour tester tous les composants. Aucune clé n’est nécessaire.
 
 ## Connexion France Student
 
@@ -138,13 +138,19 @@ Points importants :
 | `callout` | Information, succès, avertissement, erreur |
 | `stats` | Indicateurs clés |
 | `table` | Données tabulaires |
-| `chart` | Graphique en barres ou en courbe (SVG natif) |
+| `chart` | Graphique en barres, courbe, aire, camembert ou anneau (SVG natif) |
 | `checklist` | Suivi de tâches avec progression |
 | `timeline` | Étapes ordonnées |
 | `compare` | Comparaison de deux options avec verdict |
 | `slider` | Simulateur avec formule arithmétique sûre |
 | `form` | Formulaire avec validation et modèle de message |
 | `actions` | Boutons qui relancent la conversation |
+| `tabs` | Onglets : plusieurs facettes d’un sujet sans allonger la page |
+| `cards` | Cartes d’options ou d’idées, en grille ou en carrousel, cliquables si un prompt est fourni |
+| `steps` | Procédure numérotée avec détails dépliables |
+| `flashcards` | Cartes recto/verso retournables pour réviser |
+| `calculator` | Simulateur multi-paramètres avec formules nommées (évaluateur sûr, sans `eval`) |
+| `map` | Carte interactive MapLibre : épingles emoji ou numérotées, filtre par catégorie, recentrage, plein écran et itinéraire à pied animé (OSRM) |
 | `sources` | Références externes |
 
 ## Sécurité, données et limites
@@ -153,7 +159,7 @@ Points importants :
 - Une clé serveur définie dans `.env.local` n’est jamais envoyée au navigateur.
 - Le modèle ne peut pas injecter de HTML ni de composant arbitraire : seuls les blocs du schéma sont rendus.
 - Les liens Markdown et les sources s’ouvrent dans un nouvel onglet avec `rel="noopener noreferrer"`.
-- Les formules des sliders sont évaluées par un parseur maison (`+ - * / ( )`, variable `value`), sans `eval`.
+- Les formules des sliders et des calculatrices sont évaluées par des parseurs maison (`+ - * / % ^ ( )`, fonctions `min`, `max`, `abs`, `sqrt`, `round`, `floor`, `ceil`, `pow`, variables déclarées dans le bloc), sans `eval`.
 - **Aucune persistance locale** : les conversations vivent dans la mémoire de l’onglet. Un rechargement les efface.
 - En mode connecté, France Student peut conserver la conversation dans le compte associé à la clé, selon ses propres conditions. Cette application n’ajoute aucune base de données.
 - **Connexion email / mot de passe (non officielle)** : le mot de passe transite par la route `/api/auth/francestudent/login`, puis est envoyé à France Student. Il n’est ni stocké ni journalisé. Seuls les jetons de session sont conservés, dans des cookies HttpOnly (`fs_session_token`, `fs_device_id`, `secure` en production, environ 30 jours) supprimés à la déconnexion. Les réponses d’authentification sont envoyées avec `Cache-Control: no-store`, et les tentatives sont limitées à 8 par 10 minutes et par IP (compteur en mémoire, propre à chaque instance du serveur).
@@ -179,6 +185,7 @@ npm run lint   # ESLint
 - `react-markdown` + `remark-gfm`
 - `partial-json` pour le streaming
 - `lucide-react` pour les icônes
+- `maplibre-gl` pour le bloc `map` (fond de carte vectoriel OpenFreeMap avec repli raster Esri, itinéraires à pied via le serveur public de démo OSRM, proxifié par `/api/street-route`). Le rendu de la carte est adapté de [thesysdev/open-intelligent-ui](https://github.com/thesysdev/open-intelligent-ui) (licence MIT) au format JSON + Zod dece projet. La carte nécessite un accès réseau à ces services externes.
 
 ## Dépannage
 
@@ -206,7 +213,7 @@ src/
     layout.tsx
     page.tsx
   components/
-    blocks/                 # rendu des 13 types de blocs
+    blocks/                 # rendu des 19 types de blocs (dont la carte MapLibre)
     chat/                   # chat, sidebar, composer, connexion
     icons/                  # icône GitHub
   lib/
